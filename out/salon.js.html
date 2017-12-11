@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: salon.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: salon.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ *   @author Heinbokel, Doug (dheinbokel@student.ncmich.edu)
+ *   @version 0.0.1
+ *   @summary Project 6 File I/O || created: 11.27.2017
+ *   @todo Nothing
+ */
+
+"use strict";
+const PROMPT = require('readline-sync');
+const IO = require('fs');
+
+let customer = [], /*claimedCoupon = [],*/ transactions = [];
+let choice, newNum;
+
+/**
+ *   @method
+ *   @desc dispatch method for this project
+ *   @returns (null)
+ */
+function main() {
+    loadCustmers();
+    loadTransaction();
+    options();
+        if(choice === 1) {
+            addCustomer();
+        }
+        else if(choice === 2){
+            addTransaction();
+        }
+        else if(choice === 3){
+            displayCustomers();
+        }
+    writeTransaction();
+    writeMaster();
+}
+
+main();
+
+/**
+ *   @method
+ *   @desc sets choice to either 1,2, or 3
+ *   @returns (null)
+ */
+function options() {
+    choice = -1;
+    while (choice !== 1 &amp;&amp; choice !== 2 &amp;&amp; choice !== 3) {
+        choice = Number(PROMPT.question(
+            `\tChoose an option:
+        \t\t1) Add new customer
+        \t\t2) Perform transaction
+        \t\t3) Display customers
+        \t\tYour choice: `));
+    }
+}
+
+/**
+ *   @method
+ *   @desc gets the ID, service, and price for the transaction and then pushes it to the transaction array
+ *   @returns (null)
+ */
+function addTransaction() {
+    const ATTRIBUTES = 3, TRAN_ID = 0, SERVICE = 1, SER_PRICE = 2;
+    let tranID, price;
+    let type;
+    let choose = Number(PROMPT.question(`\nWhich customer is performing this transaction? [Choose a customer ID]`));
+    for (let i = 0; i &lt; customer.length; i++) {
+        if (customer[i] === choose) {
+            for (let j = 0; j &lt; ATTRIBUTES; j++) {
+                if (j === TRAN_ID) {
+                    tranID = choose;
+                }
+                else if (j === SERVICE) {
+                    type = PROMPT.question(`\nWhat type of service? [For example, Hair cut]`);
+                }
+                else if (j === SER_PRICE) {
+                    price = Number(PROMPT.question(`\nHow much did the service cost?`));
+                }
+            }
+            transactions.push([tranID, type, price]);
+        }
+    }
+}
+
+/**
+ *   @method
+ *   @desc loads in customers information from master.csv and places information into the customer array
+ *   @returns (null)
+ */
+function loadCustmers() {
+    let customerFile = IO.readFileSync(`master.csv`, `utf8`);
+    let lines = customerFile.toString().split(/\r?\n/);
+    for(let i = 0; i &lt; lines.length; i++){
+        customer.push(lines[i].toString().split(/,/));
+    }
+}
+
+/**
+ *   @method
+ *   @desc loads in customers information from transaction.csv and places information into the transactions array
+ *   @returns (null)
+ */
+function loadTransaction() {
+    let transactionFile = IO.readFileSync(`transaction.csv`, `utf8`);
+    let lines = transactionFile.toString().split(/\r?\n/);
+    for (let i = 0; i &lt; lines.length; i++) {
+        transactions.push(lines[i].toString().split(/,/));
+    }
+}
+
+/**
+ *   @method
+ *   @desc displays the contents of the customer array
+ *   @returns (null)
+ */
+function displayCustomers() {
+    const ATTRIBUTES = 5;
+    for (let i = 0; i &lt; customer.length; i++) {
+        for (let j = 0; j &lt; ATTRIBUTES; j++) {
+            console.log(customer[i][j]);
+        }
+        console.log(`\n`);
+    }
+}
+
+/**
+ *   @method
+ *   @desc writes the contents of the transactions array into transactionX.csv then renames it to transaction.csv after unlinking the original
+ *   @returns (null)
+ */
+function writeTransaction() {
+    const ATTRIBUTES = 3;
+    for (let i = 0; i &lt; transactions.length; i++) {
+        if (transactions[i]) {
+            for (let j = 0; j &lt; ATTRIBUTES; j++) {
+                if(j &lt; ATTRIBUTES -1){
+                    IO.appendFileSync(`transactionX.csv`, `${transactions[i][j]},`, `utf8`);
+                }
+                else if(i &lt; transactions.length -1){
+                    IO.appendFileSync(`transactionX.csv`, `${transactions[i][j]}\n`, `utf8`);
+                }
+                else{
+                    IO.appendFileSync(`transactionX.csv`, `${transactions[i][j]}`, `utf8`);
+                }
+            }
+        }
+    }
+    IO.unlinkSync(`transaction.csv`);
+    IO.renameSync(`transactionX.csv`, `transaction.csv`);
+}
+
+/**
+ *   @method
+ *   @desc writes the contents of the customer array into masterX.csv then renames it to master.csv after unlinking the original
+ *   @returns (null)
+ */
+function writeMaster() {
+    const ATTRIBUTES = 5;
+    for (let i = 0; i &lt; customer.length; i++) {
+        if (customer[i]) {
+            for (let j = 0; j &lt; ATTRIBUTES; j++) {
+                if(j &lt; ATTRIBUTES -1){
+                    IO.appendFileSync(`masterX.csv`, `${customer[i][j]},`, `utf8`);
+                }
+                else if(i &lt; customer.length -1){
+                    IO.appendFileSync(`masterX.csv`, `${customer[i][j]}\n`, `utf8`);
+                }
+                else{
+                    IO.appendFileSync(`masterX.csv`, `${customer[i][j]}`, `utf8`);
+                }
+            }
+        }
+    }
+    IO.unlinkSync(`master.csv`);
+    IO.renameSync(`masterX.csv`, `master.csv`);
+}
+
+/**
+ *   @method
+ *   @desc adds a new customer to the customer array
+ *   @returns (null)
+ */
+function addCustomer() {
+    newNum = customer.length;
+    let custID, lName, fName, total, couponCheck;
+    const ATTRIBUTES = 5, CUSTOMER_ID = 0, LAST_NAME = 1, FIRST_NAME = 2, TOTAL_AMOUNT = 3;
+    for(let i = 0; i &lt; ATTRIBUTES; i++){
+        if(i === CUSTOMER_ID){
+            custID = newNum;
+        }
+        else if(i === LAST_NAME){
+            lName = (PROMPT.question(`\nWhat is the last name of the customer?`));
+        }
+        else if(i === FIRST_NAME){
+            fName = (PROMPT.question(`\nWhat is the first name of the customer?`));
+        }
+        else if(i === TOTAL_AMOUNT){
+            total = 0;
+        }
+        else{
+            couponCheck = 0;
+        }
+    }
+    customer.push([custID, lName, fName, total, couponCheck]);
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addCustomer">addCustomer</a></li><li><a href="global.html#addTransaction">addTransaction</a></li><li><a href="global.html#displayCustomers">displayCustomers</a></li><li><a href="global.html#loadCustmers">loadCustmers</a></li><li><a href="global.html#loadTransaction">loadTransaction</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#options">options</a></li><li><a href="global.html#writeMaster">writeMaster</a></li><li><a href="global.html#writeTransaction">writeTransaction</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Dec 11 2017 13:50:27 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
